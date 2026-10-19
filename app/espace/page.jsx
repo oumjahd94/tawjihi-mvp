@@ -1,0 +1,266 @@
+"use client";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useLang, useT } from "../../components/LangProvider";
+import KhatamGauge from "../../components/KhatamGauge";
+import DeadlineRow from "../../components/DeadlineRow";
+import FavButton from "../../components/FavButton";
+import { IconGoogle, IconWhatsapp, IconBell } from "../../components/Icons";
+import { DEADLINES } from "../../lib/data";
+import { chances, TIER_META, bacAverage } from "../../lib/scoring";
+import { schoolBySlug, daysLeft, formatDate } from "../../lib/format";
+import { useAlertPrefs, useFavorites, useGrades, useUser } from "../../lib/store";
+import { supabase } from "../../lib/supabase";
+
+export default function Espace() {
+  const [user, setUser] = useUser();
+
+  // Avec Supabase : on récupère la vraie session (retour de Google OAuth, etc.)
+  useEffect(() => {
+    if (!supabase) return;
+    supabase.auth.getSession().then(({ data }) => {
+      const u = data.session?.user;
+      if (u) setUser({ id: u.id, name: u.user_metadata?.full_name || u.phone || u.email, via: u.app_metadata?.provider || "phone" });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return user ? <Dashboard user={user} onLogout={async () => { if (supabase) await supabase.auth.signOut(); setUser(null); }} /> : <Login onLogin={setUser} />;
+}
+
+/* ---------------- CONNEXION EN 2 CLICS ---------------- */
+function Login({ onLogin }) {
+  const t = useT();
+  const [step, setStep] = useState("choose"); // choose | phone | code
+  const [phone, setPhone] = useState("");
+  const [code, setCode] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const fullPhone = "+212" + phone.replace(/\D/g, "").replace(/^0/, "");
+
+  async function google() {
+    if (!supabase) return onLogin({ id: "demo", name: "Élève démo", via: "google" });
+    await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.origin + "/espace" } });
+  }
+
+  async function sendCode() {
+    setError("");
+    if (fullPhone.length !== 13) return setError(t({ ar: "رقم غير صحيح (مثال: 0612345678)", fr: "Numéro invalide (ex. 0612345678)" }));
+    setBusy(true);
+    if (supabase) {
+      const { error } = await supabase.auth.signInWithOtp({ phone: fullPhone, options: { channel: "whatsapp" } });
+      if (error) { setBusy(false); return setError(error.message); }
+    }
+    setBusy(false);
+    setStep("code");
+  }
+
+  async function verify() {
+    setError("");
+    if (code.length !== 6) return setError(t({ ar: "الرمز يتكون من 6 أرقام", fr: "Le code fait 6 chiffres" }));
+    if (!supabase) return onLogin({ id: "demo", name: fullPhone, via: "whatsapp", phone: fullPhone });
+    setBusy(true);
+    const { data, error } = await supabase.auth.verifyOtp({ phone: fullPhone, token: code, type: "sms" });
+    setBusy(false);
+    if (error) return setError(error.message);
+    onLogin({ id: data.user.id, name: fullPhone, via: "whatsapp", phone: fullPhone });
+  }
+
+  return (
+    <div className="max-w-md mx-auto px-4 pt-12">
+      <p className="eyebrow">{t({ ar: "الخطوة 3 · نظّم", fr: "Étape 3 · S'organiser" })}</p>
+      <h1 className="mt-1 text-3xl font-bold">{t({ ar: "فضاؤك الشخصي", fr: "Ton espace perso" })}</h1>
+      <p className="mt-2 text-ink-soft">
+        {t({ ar: "تابع مدارسك، رزنامتك الشخصية، وتنبيهات واتساب قبل كل أجل.", fr: "Tes écoles suivies, ton calendrier perso et des alertes WhatsApp avant chaque date limite." })}
+      </p>
+
+      <div className="card p-6 mt-8">
+        {step === "choose" && (
+          <div className="grid gap-3">
+            <button onClick={google} className="btn-ghost w-full !py-3.5"><IconGoogle /> {t({ ar: "المتابعة مع Google", fr: "Continuer avec Google" })}</button>
+            <button onClick={() => setStep("phone")} className="btn w-full !py-3.5 bg-[#25D366] text-white hover:brightness-95">
+              <IconWhatsapp /> {t({ ar: "المتابعة عبر واتساب", fr: "Continuer avec WhatsApp" })}
+            </button>
+          </div>
+        )}
+
+        {step === "phone" && (
+          <div>
+            <label className="text-sm font-semibold">{t({ ar: "رقم هاتفك", fr: "Ton numéro" })}</label>
+            <div className="mt-1.5 flex gap-2" dir="ltr">
+              <span className="input !w-auto font-semibold text-ink-soft">+212</span>
+              <input className="input" inputMode="tel" placeholder="6 12 34 56 78" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            </div>
+            <button onClick={sendCode} disabled={busy} className="btn w-full mt-4 bg-[#25D366] text-white">
+              {t({ ar: "أرسل الرمز على واتساب", fr: "Recevoir le code sur WhatsApp" })}
+            </button>
+          </div>
+        )}
+
+        {step === "code" && (
+          <div>
+            <label className="text-sm font-semibold">{t({ ar: "الرمز المرسل إلى", fr: "Code envoyé au" })} <span dir="ltr">{fullPhone}</span></label>
+            <input className="input mt-1.5 text-center text-2xl tracking-[.5em] font-bold" dir="ltr" inputMode="numeric" maxLength={6}
+              value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} placeholder="••••••" />
+            <button onClick={verify} disabled={busy} className="btn-primary w-full mt-4">{t({ ar: "تأكيد", fr: "Valider" })}</button>
+            {!supabase && <p className="mt-2 text-xs text-ink-faint text-center">{t({ ar: "وضع تجريبي: أي 6 أرقام", fr: "Mode démo : n'importe quels 6 chiffres" })}</p>}
+          </div>
+        )}
+
+        {error && <p className="mt-3 text-sm font-semibold text-coral">{error}</p>}
+        {step !== "choose" && (
+          <button onClick={() => { setStep("choose"); setError(""); }} className="mt-4 text-sm font-semibold text-ink-soft hover:text-ink">
+            {t({ ar: "رجوع", fr: "Retour" })}
+          </button>
+        )}
+      </div>
+      <p className="mt-4 text-xs text-ink-faint text-center leading-relaxed">
+        {t({
+          ar: "بالمتابعة، أنت توافق على تلقي تنبيهات التوجيه. معطياتك محمية وفق القانون 09-08.",
+          fr: "En continuant, tu acceptes de recevoir des alertes d'orientation. Tes données sont protégées conformément à la loi 09-08."
+        })}
+      </p>
+    </div>
+  );
+}
+
+/* ---------------- TABLEAU DE BORD ---------------- */
+function Dashboard({ user, onLogout }) {
+  const t = useT();
+  const { lang } = useLang();
+  const [favs] = useFavorites();
+  const [grades] = useGrades();
+  const [prefs, setPrefs] = useAlertPrefs();
+  const schools = favs.map(schoolBySlug).filter(Boolean);
+  const myDeadlines = DEADLINES
+    .filter((d) => (d.school === null || favs.includes(d.school)) && daysLeft(d.date) >= 0)
+    .sort((a, b) => a.date.localeCompare(b.date));
+  const next = myDeadlines.find((d) => d.school);
+  const avg = bacAverage(grades);
+
+  // Regroupement par mois pour le calendrier
+  const byMonth = myDeadlines.reduce((acc, d) => {
+    const k = d.date.slice(0, 7);
+    (acc[k] ||= []).push(d);
+    return acc;
+  }, {});
+
+  const toggles = [
+    { k: "whatsapp", ar: "تنبيهات واتساب", fr: "Alertes WhatsApp" },
+    { k: "sms", ar: "رسائل SMS", fr: "SMS" },
+    { k: "opening", ar: "عند فتح التسجيل", fr: "À l'ouverture des inscriptions" },
+    { k: "j7", ar: "7 أيام قبل الأجل", fr: "7 jours avant la clôture" },
+    { k: "j1", ar: "يوم قبل الأجل", fr: "La veille de la clôture" }
+  ];
+
+  return (
+    <div className="max-w-6xl mx-auto px-4 pt-10">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="eyebrow">{t({ ar: "فضائي", fr: "Mon espace" })}</p>
+          <h1 className="mt-1 text-3xl font-bold">{t({ ar: "مرحبًا", fr: "Salut" })} {user.name?.split(" ")[0]} 👋</h1>
+        </div>
+        <button onClick={onLogout} className="text-sm font-semibold text-ink-soft hover:text-coral">{t({ ar: "تسجيل الخروج", fr: "Se déconnecter" })}</button>
+      </div>
+
+      {/* BANDEAU PROCHAINE ÉCHÉANCE */}
+      {next && (
+        <div className="mt-6 rounded-xl2 bg-majorelle text-white p-6 flex flex-col md:flex-row md:items-center gap-4 justify-between">
+          <div>
+            <p className="text-white/70 text-sm font-semibold">{t({ ar: "الأجل القادم", fr: "Ta prochaine échéance" })}</p>
+            <p className="mt-1 text-xl font-bold">{t(next)}</p>
+            <p className="text-white/80 text-sm mt-1">{formatDate(next.date, lang)}</p>
+          </div>
+          <div className="text-center rounded-xl bg-white/10 ring-1 ring-white/20 px-6 py-3">
+            <p className="text-4xl font-bold" dir="ltr">{daysLeft(next.date)}</p>
+            <p className="text-sm text-white/80">{t({ ar: "يوم متبقي", fr: "jours restants" })}</p>
+          </div>
+        </div>
+      )}
+
+      <div className="mt-8 grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-8 items-start">
+        <div className="grid gap-8 min-w-0">
+          {/* ÉCOLES SUIVIES */}
+          <section>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold">{t({ ar: "مدارسي المفضلة", fr: "Mes écoles suivies" })} <span className="text-ink-faint">({schools.length})</span></h2>
+              <Link href="/ecoles" className="text-sm font-semibold text-majorelle hover:underline">+ {t({ ar: "إضافة", fr: "Ajouter" })}</Link>
+            </div>
+            {schools.length === 0 ? (
+              <div className="card p-8 mt-4 text-center">
+                <p className="font-semibold">{t({ ar: "لم تتابع أي مدرسة بعد.", fr: "Tu ne suis encore aucune école." })}</p>
+                <p className="text-sm text-ink-soft mt-1">{t({ ar: "اضغط ♡ على أي مدرسة لتظهر هنا مع مواعيدها.", fr: "Appuie sur ♡ sur une école : elle apparaîtra ici avec ses dates." })}</p>
+                <Link href="/simulateur" className="btn-primary mt-4">{t({ ar: "ابدأ بالمحاكي", fr: "Commencer par le simulateur" })}</Link>
+              </div>
+            ) : (
+              <ul className="mt-4 grid sm:grid-cols-2 gap-3">
+                {schools.map((s) => {
+                  const c = chances(s, grades.bac, grades, grades.estimated);
+                  const m = TIER_META[c.tier];
+                  return (
+                    <li key={s.slug} className="card p-4 flex items-center gap-4">
+                      <KhatamGauge size={60} value={c.prob ?? null} color={m.color} label="•" />
+                      <Link href={`/ecoles/${s.slug}`} className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-majorelle">{s.acronym}</p>
+                        <p className="font-semibold truncate">{t(s)}</p>
+                        <p className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-bold ${m.cls}`}>{t(m)}</p>
+                      </Link>
+                      <FavButton slug={s.slug} compact />
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </section>
+
+          {/* CALENDRIER PERSONNALISÉ */}
+          <section>
+            <h2 className="text-xl font-bold">{t({ ar: "رزنامتي", fr: "Mon calendrier" })}</h2>
+            <div className="mt-4 grid gap-5">
+              {Object.entries(byMonth).map(([month, items]) => (
+                <div key={month}>
+                  <p className="text-sm font-bold text-ink-soft mb-2">{formatDate(month + "-01", lang, { month: "long", year: "numeric" })}</p>
+                  <div className="card divide-y divide-line overflow-hidden">{items.map((d) => <DeadlineRow key={d.id} d={d} />)}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+
+        {/* PROFIL + ALERTES */}
+        <aside className="grid gap-4 lg:sticky lg:top-24">
+          <section className="card p-5">
+            <h2 className="font-bold">{t({ ar: "ملفي", fr: "Mon profil" })}</h2>
+            <div className="mt-3 flex items-center justify-between text-sm">
+              <span className="text-ink-soft">{t({ ar: "الباك", fr: "Bac" })}</span><b>{grades.bac}</b>
+            </div>
+            <div className="mt-2 flex items-center justify-between text-sm">
+              <span className="text-ink-soft">{t({ ar: "المعدل", fr: "Moyenne" })}</span><b dir="ltr">{avg != null ? avg.toFixed(2) : "—"}</b>
+            </div>
+            <Link href="/simulateur" className="btn-ghost w-full mt-4 !py-2.5 text-sm">{t({ ar: "تعديل نقطي", fr: "Modifier mes notes" })}</Link>
+          </section>
+
+          <section className="card p-5">
+            <div className="flex items-center gap-2"><IconBell width={20} height={20} className="text-majorelle" /><h2 className="font-bold">{t({ ar: "تنبيهاتي", fr: "Mes alertes" })}</h2></div>
+            <ul className="mt-4 grid gap-3">
+              {toggles.map((o) => (
+                <li key={o.k} className="flex items-center justify-between gap-3">
+                  <span className="text-sm font-medium">{t(o)}</span>
+                  <button role="switch" aria-checked={!!prefs[o.k]} onClick={() => setPrefs((p) => ({ ...p, [o.k]: !p[o.k] }))}
+                    className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${prefs[o.k] ? "bg-mint" : "bg-line"}`}>
+                    <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${prefs[o.k] ? "start-[22px]" : "start-0.5"}`} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-4 text-xs text-ink-faint leading-relaxed">
+              {user.via === "whatsapp"
+                ? t({ ar: "سنراسلك على", fr: "On t'écrira au" }) + " " + (user.phone || "")
+                : t({ ar: "أضف رقمك عبر تسجيل الدخول بواتساب لتلقي التنبيهات.", fr: "Connecte-toi avec WhatsApp pour recevoir les alertes sur ton téléphone." })}
+            </p>
+          </section>
+        </aside>
+      </div>
+    </div>
+  );
+}

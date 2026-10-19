@@ -2,13 +2,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useLang, useT } from "../../components/LangProvider";
-import KhatamGauge from "../../components/KhatamGauge";
-import DeadlineRow from "../../components/DeadlineRow";
+import { VerdictGauge } from "../../components/KhatamGauge";
+import ConcoursRow from "../../components/ConcoursRow";
 import FavButton from "../../components/FavButton";
 import { IconGoogle, IconWhatsapp, IconBell } from "../../components/Icons";
-import { DEADLINES } from "../../lib/data";
-import { chances, TIER_META, bacAverage } from "../../lib/scoring";
-import { schoolBySlug, daysLeft, formatDate } from "../../lib/format";
+import { activeConcours, daysLeft } from "../../lib/concours";
+import { verdict, TIER_META, bacAverage } from "../../lib/scoring";
+import { schoolBySlug, formatDate } from "../../lib/format";
 import { useAlertPrefs, useFavorites, useGrades, useUser } from "../../lib/store";
 import { supabase } from "../../lib/supabase";
 
@@ -132,15 +132,16 @@ function Dashboard({ user, onLogout }) {
   const [grades] = useGrades();
   const [prefs, setPrefs] = useAlertPrefs();
   const schools = favs.map(schoolBySlug).filter(Boolean);
-  const myDeadlines = DEADLINES
-    .filter((d) => (d.school === null || favs.includes(d.school)) && daysLeft(d.date) >= 0)
-    .sort((a, b) => a.date.localeCompare(b.date));
-  const next = myDeadlines.find((d) => d.school);
+  // Échéances de mes écoles (un établissement suit les dates de son réseau) + échéances générales
+  const keys = new Set(schools.map((s) => s.network || s.slug));
+  const myDeadlines = activeConcours().filter((c) => c.school === null || keys.has(c.school));
+  const dateOf = (c) => (c.status === "upcoming" ? c.start : c.end || c.start);
+  const next = myDeadlines.find((c) => c.school && c.status !== "ongoing" && dateOf(c));
   const avg = bacAverage(grades);
 
   // Regroupement par mois pour le calendrier
   const byMonth = myDeadlines.reduce((acc, d) => {
-    const k = d.date.slice(0, 7);
+    const k = d.status === "ongoing" ? "0000-00" : (dateOf(d) || "0000-00").slice(0, 7);
     (acc[k] ||= []).push(d);
     return acc;
   }, {});
@@ -165,14 +166,14 @@ function Dashboard({ user, onLogout }) {
 
       {/* BANDEAU PROCHAINE ÉCHÉANCE */}
       {next && (
-        <div className="mt-6 rounded-xl2 bg-majorelle text-white p-6 flex flex-col md:flex-row md:items-center gap-4 justify-between">
+        <div className="mt-6 rounded-xl2 bg-brand-600 text-white p-6 flex flex-col md:flex-row md:items-center gap-4 justify-between">
           <div>
             <p className="text-white/70 text-sm font-semibold">{t({ ar: "الأجل القادم", fr: "Ta prochaine échéance" })}</p>
             <p className="mt-1 text-xl font-bold">{t(next)}</p>
-            <p className="text-white/80 text-sm mt-1">{formatDate(next.date, lang)}</p>
+            <p className="text-white/80 text-sm mt-1">{formatDate(dateOf(next), lang)}</p>
           </div>
           <div className="text-center rounded-xl bg-white/10 ring-1 ring-white/20 px-6 py-3">
-            <p className="text-4xl font-bold" dir="ltr">{daysLeft(next.date)}</p>
+            <p className="text-4xl font-bold" dir="ltr">{daysLeft(dateOf(next))}</p>
             <p className="text-sm text-white/80">{t({ ar: "يوم متبقي", fr: "jours restants" })}</p>
           </div>
         </div>
@@ -184,7 +185,7 @@ function Dashboard({ user, onLogout }) {
           <section>
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold">{t({ ar: "مدارسي المفضلة", fr: "Mes écoles suivies" })} <span className="text-ink-faint">({schools.length})</span></h2>
-              <Link href="/ecoles" className="text-sm font-semibold text-majorelle hover:underline">+ {t({ ar: "إضافة", fr: "Ajouter" })}</Link>
+              <Link href="/ecoles" className="text-sm font-semibold text-brand-600 hover:underline">+ {t({ ar: "إضافة", fr: "Ajouter" })}</Link>
             </div>
             {schools.length === 0 ? (
               <div className="card p-8 mt-4 text-center">
@@ -195,13 +196,13 @@ function Dashboard({ user, onLogout }) {
             ) : (
               <ul className="mt-4 grid sm:grid-cols-2 gap-3">
                 {schools.map((s) => {
-                  const c = chances(s, grades.bac, grades, grades.estimated);
+                  const c = verdict(s, grades.bac, grades);
                   const m = TIER_META[c.tier];
                   return (
                     <li key={s.slug} className="card p-4 flex items-center gap-4">
-                      <KhatamGauge size={60} value={c.prob ?? null} color={m.color} label="•" />
+                      <VerdictGauge v={c} meta={m} size={60} t={t} />
                       <Link href={`/ecoles/${s.slug}`} className="flex-1 min-w-0">
-                        <p className="text-xs font-bold text-majorelle">{s.acronym}</p>
+                        <p className="text-xs font-bold text-brand-600">{s.acronym}</p>
                         <p className="font-semibold truncate">{t(s)}</p>
                         <p className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-bold ${m.cls}`}>{t(m)}</p>
                       </Link>
@@ -219,8 +220,8 @@ function Dashboard({ user, onLogout }) {
             <div className="mt-4 grid gap-5">
               {Object.entries(byMonth).map(([month, items]) => (
                 <div key={month}>
-                  <p className="text-sm font-bold text-ink-soft mb-2">{formatDate(month + "-01", lang, { month: "long", year: "numeric" })}</p>
-                  <div className="card divide-y divide-line overflow-hidden">{items.map((d) => <DeadlineRow key={d.id} d={d} />)}</div>
+                  <p className="text-sm font-bold text-ink-soft mb-2">{month === "0000-00" ? t({ ar: "جارٍ حاليًا", fr: "En cours" }) : formatDate(month + "-01", lang, { month: "long", year: "numeric" })}</p>
+                  <div className="card divide-y divide-line overflow-hidden">{items.map((d) => <ConcoursRow key={d.id} c={d} />)}</div>
                 </div>
               ))}
             </div>
@@ -241,13 +242,13 @@ function Dashboard({ user, onLogout }) {
           </section>
 
           <section className="card p-5">
-            <div className="flex items-center gap-2"><IconBell width={20} height={20} className="text-majorelle" /><h2 className="font-bold">{t({ ar: "تنبيهاتي", fr: "Mes alertes" })}</h2></div>
+            <div className="flex items-center gap-2"><IconBell width={20} height={20} className="text-brand-600" /><h2 className="font-bold">{t({ ar: "تنبيهاتي", fr: "Mes alertes" })}</h2></div>
             <ul className="mt-4 grid gap-3">
               {toggles.map((o) => (
                 <li key={o.k} className="flex items-center justify-between gap-3">
                   <span className="text-sm font-medium">{t(o)}</span>
                   <button role="switch" aria-checked={!!prefs[o.k]} onClick={() => setPrefs((p) => ({ ...p, [o.k]: !p[o.k] }))}
-                    className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${prefs[o.k] ? "bg-mint" : "bg-line"}`}>
+                    className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${prefs[o.k] ? "bg-brand-600" : "bg-line"}`}>
                     <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${prefs[o.k] ? "start-[22px]" : "start-0.5"}`} />
                   </button>
                 </li>

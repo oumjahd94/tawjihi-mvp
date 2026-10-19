@@ -1,8 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // L'ancienne route /filieres redirige vers les nouvelles fiches écoles
   async redirects() {
-    return [{ source: "/filieres/:slug", destination: "/ecoles", permanent: false }];
-  }
+    return [
+      { source: "/calendrier", destination: "/concours", permanent: true },
+      { source: "/filieres/:slug", destination: "/ecoles", permanent: false }
+    ];
+  },
+  images: { remotePatterns: [{ protocol: "https", hostname: "**.supabase.co" }] }
 };
 export default nextConfig;

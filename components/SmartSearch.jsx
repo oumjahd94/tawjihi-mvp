@@ -72,11 +72,11 @@ export default function SmartSearch({ large = false }) {
           {results.map((r, i) => (
             <li key={r.href} role="option" aria-selected={i === cursor}>
               <button onMouseEnter={() => setCursor(i)} onClick={() => go(r)}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-start ${i === cursor ? "bg-majorelle-soft" : ""}`}>
-                <span className={`shrink-0 min-w-[3.25rem] text-center rounded-lg px-2 py-1 text-xs font-bold ${r.kind === "school" ? "bg-majorelle text-white" : "bg-paper text-ink-soft"}`}>
+                className={`w-full flex items-center gap-3 px-4 py-3 text-start ${i === cursor ? "bg-brand-50" : ""}`}>
+                <span className={`shrink-0 min-w-[3.25rem] text-center rounded-lg px-2 py-1 text-xs font-bold ${r.kind !== "domain" ? "bg-brand-600 text-white" : "bg-paper text-ink-soft"}`}>
                   {r.badge}
                 </span>
-                <span className="flex-1 truncate">{t(r)}</span>
+                <span className="flex-1 min-w-0"><span className="block truncate">{t(r)}</span>{r.city && <span className="block text-xs text-ink-faint">{r.city}</span>}</span>
                 <IconArrow width={16} height={16} className="text-ink-faint rtl:rotate-180" />
               </button>
             </li>

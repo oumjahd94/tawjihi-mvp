@@ -40,10 +40,10 @@ export default function Preparation() {
             <button key={id} onClick={() => setRunning(id)} className="card p-5 text-start hover:shadow-lift hover:-translate-y-0.5 transition-all group">
               <div className="flex items-center justify-between text-sm">
                 <span className="inline-flex items-center gap-1.5 font-semibold text-ink-soft"><IconClock width={16} height={16} /> {q.seconds / 60} min · {q.questions.length} Q</span>
-                {best[id] != null && <span className="rounded-md bg-mint-soft text-mint px-2 py-0.5 text-xs font-bold" dir="ltr">★ {best[id]}/{q.questions.length}</span>}
+                {best[id] != null && <span className="rounded-md bg-brand-50 text-brand-600 px-2 py-0.5 text-xs font-bold" dir="ltr">★ {best[id]}/{q.questions.length}</span>}
               </div>
               <p className="mt-3 font-bold text-lg leading-snug">{t(q)}</p>
-              <span className="mt-4 inline-block text-sm font-semibold text-majorelle group-hover:underline">{t({ ar: "ابدأ ←", fr: "Commencer →" })}</span>
+              <span className="mt-4 inline-block text-sm font-semibold text-brand-600 group-hover:underline">{t({ ar: "ابدأ ←", fr: "Commencer →" })}</span>
             </button>
           ))}
         </div>
@@ -63,17 +63,17 @@ export default function Preparation() {
         <ul className="mt-4 card divide-y divide-line overflow-hidden">
           {annales.map((a, k) => (
             <li key={k} className="p-4 flex items-center gap-4">
-              <div className="h-11 w-11 shrink-0 rounded-xl bg-majorelle-soft text-majorelle grid place-items-center"><IconBook width={20} height={20} /></div>
+              <div className="h-11 w-11 shrink-0 rounded-xl bg-brand-50 text-brand-600 grid place-items-center"><IconBook width={20} height={20} /></div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold leading-snug">{t(a)}</p>
                 <p className="text-sm text-ink-soft">{schoolBySlug(a.school).acronym} · {a.year}</p>
               </div>
               {a.premium ? (
-                <span className="inline-flex items-center gap-1 rounded-lg bg-saffron-soft text-saffron px-2.5 py-1.5 text-xs font-bold">
+                <span className="inline-flex items-center gap-1 rounded-lg bg-gold-50 text-gold-700 px-2.5 py-1.5 text-xs font-bold">
                   <IconLock width={14} height={14} /> Premium
                 </span>
               ) : a.quiz ? (
-                <button onClick={() => setRunning(a.quiz)} className="rounded-lg bg-majorelle text-white px-3 py-1.5 text-xs font-bold">{t({ ar: "تدرب", fr: "S'entraîner" })}</button>
+                <button onClick={() => setRunning(a.quiz)} className="rounded-lg bg-brand-600 text-white px-3 py-1.5 text-xs font-bold">{t({ ar: "تدرب", fr: "S'entraîner" })}</button>
               ) : (
                 <span className="rounded-lg bg-paper text-ink-soft px-2.5 py-1.5 text-xs font-bold">{t({ ar: "قريبًا", fr: "Bientôt" })}</span>
               )}

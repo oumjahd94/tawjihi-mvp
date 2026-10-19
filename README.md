@@ -1,52 +1,44 @@
-# Tawjihi — Plateforme d'orientation post-bac (Maroc) · v2
+# Maslaki — مسلكي · Orientation après le bac au Maroc
 
 Stack : **Next.js 14 + TailwindCSS + Supabase + Vercel**. Arabe par défaut (RTL), bilingue AR/FR.
-Le site fonctionne **immédiatement en mode démo** (sans Supabase) : données dans `lib/data.js`,
-favoris / notes / profil stockés dans le navigateur.
-
-## Le parcours élève en 5 étapes
-
-| Étape | Page | Ce qu'elle fait |
-|---|---|---|
-| 1. Découvrir | `/` et `/test` | Recherche intelligente FR/AR (auto-complétion, tolère accents et graphies arabes) + test d'orientation RIASEC en 10 questions |
-| 2. Évaluer | `/simulateur`, `/ecoles`, `/ecoles/[slug]` | Notes régional 25 % / CC 25 % / national 50 %, jauge de probabilité par école à partir des seuils des 5 dernières années (régression + incertitude), formule propre à chaque école, fiches écoles claires |
-| 3. S'organiser | `/espace`, `/calendrier` | Connexion Google ou WhatsApp, écoles suivies, calendrier personnalisé, réglages d'alertes |
-| 4. Se préparer | `/preparation` | Quiz chronométrés (mobile-first) + banque d'annales (gratuit / premium) |
-| 5. S'entraider | `/communaute` | Salons par filière (temps réel avec Supabase), remontées des listes d'attente, filtre anti-données perso |
+Fonctionne en **mode démo sans Supabase** (actualités de départ, favoris et notes dans le navigateur).
 
 ## Lancer en local
-
 ```bash
 npm install
 npm run dev        # http://localhost:3000
 ```
+Mettre à jour après une modification poussée sur GitHub : `git pull` puis `npm install`.
 
-## Brancher Supabase
+## Ce que contient le site
+| Rubrique | Page | Données |
+|---|---|---|
+| Annuaire | `/ecoles`, `/ecoles/[slug]` | `lib/schools.js` — 17 réseaux + 184 établissements (public, privé reconnu, militaire) |
+| Simulateur | `/simulateur` | Seuils de présélection 2026 réels, formule de chaque école |
+| Concours | `/concours` | `lib/concours.js` — statut calculé automatiquement (ouvert / en cours / à venir) |
+| Actualités | `/actualites` | Supabase (table `news`), sinon `lib/news-seed.js` |
+| Back-office | `/admin` | Publier, modifier, programmer, supprimer des articles + images |
+| Légal | `/confidentialite`, `/mentions-legales`, `/a-propos`, `/contact` | Textes à compléter dans `lib/site.js` |
 
-1. SQL Editor : exécuter `supabase/schema.sql`, puis `supabase/seed.sql`, puis **`supabase/migration_v2.sql`** (nouvelles tables : favoris, messages, listes d'attente, annales, avis, journal des notifications).
-2. Copier `.env.local.example` → `.env.local` et remplir les 2 clés `NEXT_PUBLIC_…`.
-3. Connexion Google : Supabase > Authentication > Providers > Google (créer un client OAuth dans Google Cloud Console).
-4. Connexion WhatsApp : Supabase > Authentication > Providers > Phone, avec Twilio (WhatsApp activé). Payant à l'usage.
+## Mettre à jour les données
+- **Une école** : `lib/schools.js`. Un réseau (ex. ENSA) génère ses établissements via `members`.
+- **Un concours** : `lib/concours.js`. Mets `confirmed: true` + la source dès l'annonce officielle. Change `UPDATED_AT`.
+- **Une actualité** : depuis `/admin` (aucun code à toucher).
 
-## Alertes WhatsApp automatiques
+## Activer le back-office des actualités
+1. Supabase > SQL Editor : `supabase/schema.sql`, `migration_v2.sql`, puis **`migration_v3_actualites.sql`**.
+2. Authentication > Users > Add user (ton email + mot de passe).
+3. Exécute les 2 lignes en bas de `migration_v3_actualites.sql` avec ton email → tu deviens admin.
+4. Va sur `/admin`, connecte-toi, clique « Importer les 6 articles de départ ».
 
-`app/api/alerts/route.js` tourne chaque jour à 8h (UTC) via `vercel.json`. Il prévient les élèves
-qui suivent une école : à l'ouverture des inscriptions, 7 jours avant et la veille de la clôture.
+## Google AdSense
+1. Mets le site en ligne sur ton domaine (ex. maslaki.ma) avec les pages légales complétées.
+2. Inscris le site sur adsense.google.com. Une fois accepté, renseigne `NEXT_PUBLIC_ADSENSE_CLIENT` (ca-pub-…) et les 3 IDs d'emplacements dans Vercel.
+3. `/ads.txt` est généré automatiquement.
+4. Dans AdSense > Confidentialité et messages, active le message de consentement (obligatoire pour les visiteurs d'Europe).
 
-Prérequis :
-- Un compte **WhatsApp Business Platform** (Meta) et un **template de message approuvé** (`rappel_deadline`, 2 variables : libellé + date). Les messages proactifs sans template sont refusés par Meta.
-- Variables serveur dans Vercel : `SUPABASE_SERVICE_ROLE_KEY`, `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_TEMPLATE`, `CRON_SECRET`.
-- Les deadlines en base doivent avoir `school_slug` renseigné.
-
-## Changer le nom de la marque
-
-Un seul fichier : `lib/site.js`.
-
-## ⚠️ Avant la mise en ligne publique
-
-- **Données** : tous les seuils, dates, frais et salaires de `lib/data.js` sont des ordres de grandeur de démo. À remplacer par des données vérifiées et sourcées.
-- **Avis** : les avis actuels sont fictifs et étiquetés comme tels. Ne publiez que de vrais avis, modérés (`reviews.approved`).
-- **Annales** : vérifier les droits de diffusion de chaque sujet avant publication (`annales.rights_ok`).
-- **CNDP / loi 09-08** : déclaration obligatoire avant de collecter téléphones et notes. Public souvent mineur → consentement parental à prévoir.
-- **Communauté** : modération humaine indispensable (signalements, masquage `messages.hidden`).
-- **Coût WhatsApp** : facturé par conversation par Meta ; prévoir un budget avant d'ouvrir les alertes à grande échelle.
+## ⚠️ Avant la mise en ligne
+- Compléter `SITE.legal` dans `lib/site.js` (éditeur, adresse, email, n° CNDP) et `SITE.url`.
+- Déclaration **CNDP** (loi 09-08) avant de collecter téléphones et notes.
+- Seuils 2026 issus d'un agrégateur (orientation-chabab.com) : à recouper avec les notes officielles.
+- Frais du privé non renseignés volontairement (non vérifiés).

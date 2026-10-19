@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 
-// Signature visuelle du site : une jauge en forme de khatam
-// (étoile à 8 branches du zellige) qui se remplit selon la probabilité.
+// Signature visuelle : jauge en khatam (étoile à 8 branches du zellige).
+// value = remplissage 0-100 ; label = texte central (ex. "+1.25").
 
 function starPath(cx, cy, R, r) {
   const pts = [];
@@ -16,7 +16,7 @@ function starPath(cx, cy, R, r) {
 
 const D = starPath(50, 50, 44, 34);
 
-export default function KhatamGauge({ value = null, color = "#2F45D0", size = 88, label, sublabel }) {
+export default function KhatamGauge({ value = null, color = "#0E7A5A", size = 88, label, sublabel }) {
   const [shown, setShown] = useState(0);
   useEffect(() => {
     const id = requestAnimationFrame(() => setShown(value ?? 0));
@@ -24,34 +24,36 @@ export default function KhatamGauge({ value = null, color = "#2F45D0", size = 88
   }, [value]);
 
   return (
-    <div className="relative shrink-0" style={{ width: size, height: size }} role="img" aria-label={value != null ? `${value}%` : label}>
+    <div className="relative shrink-0" style={{ width: size, height: size }} role="img" aria-label={[label, sublabel].filter(Boolean).join(" ")}>
       <svg viewBox="0 0 100 100" width={size} height={size}>
-        <path d={D} fill={color} fillOpacity=".07" stroke="#E3E5EF" strokeWidth="6" strokeLinejoin="round" />
+        <path d={D} fill={color} fillOpacity=".08" stroke="#E1E7E4" strokeWidth="6" strokeLinejoin="round" />
         {value != null && (
-          <path
-            d={D} fill="none" stroke={color} strokeWidth="6" strokeLinejoin="round" strokeLinecap="round"
-            pathLength="100" strokeDasharray={`${shown} 100`} className="gauge-arc"
-          />
+          <path d={D} fill="none" stroke={color} strokeWidth="6" strokeLinejoin="round" strokeLinecap="round"
+            pathLength="100" strokeDasharray={`${shown} 100`} className="gauge-arc" />
         )}
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center leading-none">
-        {value != null ? (
-          <span className="font-bold" style={{ color, fontSize: size * 0.24 }} dir="ltr">{value}<span style={{ fontSize: size * 0.13 }}>%</span></span>
-        ) : (
-          <span className="font-bold" style={{ color, fontSize: size * 0.15 }}>{label}</span>
-        )}
+        <span className="font-semibold" style={{ color, fontSize: size * (String(label).length > 4 ? 0.17 : 0.22) }} dir="ltr">{label}</span>
         {sublabel && <span className="mt-1 text-ink-faint" style={{ fontSize: size * 0.11 }}>{sublabel}</span>}
       </div>
     </div>
   );
 }
 
-// Version mini, utilisée pour le logo
-export function KhatamMark({ size = 28, color = "currentColor" }) {
+// Logo Maslaki : khatam émeraude, cœur doré
+export function KhatamMark({ size = 30, color = "#0E7A5A", core = "#DDB45E" }) {
   return (
     <svg viewBox="0 0 100 100" width={size} height={size} aria-hidden="true">
       <path d={D} fill={color} />
-      <circle cx="50" cy="50" r="13" fill="#E8970A" />
+      <path d={starPath(50, 50, 22, 17)} fill={core} />
     </svg>
   );
+}
+
+// Jauge prête à l'emploi à partir d'un verdict (lib/scoring)
+export function VerdictGauge({ v, meta, size = 76, t }) {
+  if (v.tier === "unknown") return <KhatamGauge size={size} value={null} color={meta.color} label={v.range ? `${v.lo}+` : v.lo} sublabel={t({ ar: "عتبة", fr: "seuil" })} />;
+  if (v.margin == null) return <KhatamGauge size={size} value={null} color={meta.color} label={v.tier === "open" ? "✓" : "—"} />;
+  const label = `${v.margin >= 0 ? "+" : "−"}${Math.abs(v.margin).toFixed(2)}`;
+  return <KhatamGauge size={size} value={v.fill} color={meta.color} label={label} sublabel={t({ ar: "نقطة", fr: "pts" })} />;
 }

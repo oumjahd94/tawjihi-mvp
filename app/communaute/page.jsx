@@ -31,7 +31,7 @@ function Community() {
 
       <div className="mt-6 flex gap-2 overflow-x-auto pb-1 lg:hidden">
         {ROOMS.map((r) => (
-          <button key={r.slug} onClick={() => setRoom(r.slug)} className={`chip shrink-0 ${room === r.slug ? "!bg-majorelle !text-white !border-majorelle" : ""}`}># {t(r)}</button>
+          <button key={r.slug} onClick={() => setRoom(r.slug)} className={`chip shrink-0 ${room === r.slug ? "!bg-brand-600 !text-white !border-brand-600" : ""}`}># {t(r)}</button>
         ))}
       </div>
 
@@ -39,7 +39,7 @@ function Community() {
         <nav className="hidden lg:block card p-2">
           {ROOMS.map((r) => (
             <button key={r.slug} onClick={() => setRoom(r.slug)}
-              className={`w-full text-start rounded-lg px-3 py-2.5 text-sm font-semibold ${room === r.slug ? "bg-majorelle-soft text-majorelle" : "text-ink-soft hover:bg-paper"}`}>
+              className={`w-full text-start rounded-lg px-3 py-2.5 text-sm font-semibold ${room === r.slug ? "bg-brand-50 text-brand-600" : "text-ink-soft hover:bg-paper"}`}>
               # {t(r)}
             </button>
           ))}
@@ -98,8 +98,8 @@ function Chat({ room, user, t }) {
       <ul className="flex-1 overflow-y-auto p-5 grid gap-3 content-start">
         {messages.map((m, i) => (
           <li key={i} className={`max-w-[85%] ${m.me ? "ms-auto" : ""}`}>
-            <p className={`text-xs font-semibold mb-1 ${m.me ? "text-end text-majorelle" : "text-ink-soft"}`}>{m.who} · <span dir="ltr">{m.h}</span></p>
-            <p className={`rounded-2xl px-4 py-2.5 leading-relaxed ${m.me ? "bg-majorelle text-white rounded-se-md" : "bg-paper rounded-ss-md"}`}>{m.t}</p>
+            <p className={`text-xs font-semibold mb-1 ${m.me ? "text-end text-brand-600" : "text-ink-soft"}`}>{m.who} · <span dir="ltr">{m.h}</span></p>
+            <p className={`rounded-2xl px-4 py-2.5 leading-relaxed ${m.me ? "bg-brand-600 text-white rounded-se-md" : "bg-paper rounded-ss-md"}`}>{m.t}</p>
           </li>
         ))}
         <li ref={endRef} />
@@ -115,7 +115,7 @@ function Chat({ room, user, t }) {
         </form>
       ) : (
         <div className="border-t border-line p-4 text-center text-sm">
-          <Link href="/espace" className="font-semibold text-majorelle hover:underline">{t({ ar: "سجّل الدخول للمشاركة", fr: "Connecte-toi pour participer" })}</Link>
+          <Link href="/espace" className="font-semibold text-brand-600 hover:underline">{t({ ar: "سجّل الدخول للمشاركة", fr: "Connecte-toi pour participer" })}</Link>
         </div>
       )}
     </section>
@@ -149,7 +149,7 @@ function Waitlist({ room, t }) {
               <span className="text-xs text-ink-faint">{r.h}</span>
             </div>
             <p className="mt-1 text-sm" dir="ltr">
-              <span className="text-ink-soft">{t({ ar: "اللائحة", fr: "Liste" })} {r.list} ·</span> <b className="text-majorelle">#{r.rank}</b>
+              <span className="text-ink-soft">{t({ ar: "اللائحة", fr: "Liste" })} {r.list} ·</span> <b className="text-brand-600">#{r.rank}</b>
             </p>
           </li>
         ))}

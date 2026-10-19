@@ -1,27 +1,26 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./app/**/*.{js,jsx}", "./components/**/*.{js,jsx}"],
+  content: ["./app/**/*.{js,jsx}", "./components/**/*.{js,jsx}", "./lib/**/*.js"],
   theme: {
     extend: {
       colors: {
-        // Bleu Majorelle : couleur de marque, iconique et 100 % marocaine
-        majorelle: { DEFAULT: "#2F45D0", deep: "#1C2B95", soft: "#E9ECFC" },
-        ink: { DEFAULT: "#0D1330", soft: "#4A5070", faint: "#8A8FA8" },
-        paper: "#F4F5FA",
-        line: "#E3E5EF",
-        // Couleurs de verdict (jauges)
-        mint: { DEFAULT: "#0E9F77", soft: "#E3F6F0" },
-        saffron: { DEFAULT: "#E8970A", soft: "#FDF3DF" },
-        coral: { DEFAULT: "#DE4747", soft: "#FCE8E8" }
+        // Émeraude : réussite, sérieux, identité marocaine
+        brand: { 50: "#ECF6F1", 100: "#D2EBDF", 200: "#A6D6C0", 500: "#14936D", 600: "#0E7A5A", 700: "#0B6249", 800: "#084A37", 900: "#06372A", 950: "#03231B" },
+        // Or : accent premium, utilisé avec parcimonie
+        gold: { 50: "#FBF6E9", 100: "#F5E8C4", 300: "#E6C77E", 400: "#DDB45E", 500: "#C9962E", 700: "#86621A" },
+        ink: { DEFAULT: "#11201B", soft: "#4A5A54", faint: "#86948E" },
+        paper: "#F4F6F5",
+        line: "#E1E7E4",
+        amber: { DEFAULT: "#C76A06", soft: "#FCEFDD" },
+        coral: { DEFAULT: "#CF3F3F", soft: "#FBE8E8" }
       },
-      fontFamily: {
-        sans: ['"Readex Pro"', "Tajawal", "system-ui", "sans-serif"]
-      },
+      fontFamily: { sans: ['"Readex Pro"', "Tajawal", "system-ui", "sans-serif"] },
       borderRadius: { xl2: "1.25rem" },
       boxShadow: {
-        card: "0 1px 2px rgba(13,19,48,.04), 0 4px 16px rgba(13,19,48,.05)",
-        lift: "0 8px 30px rgba(13,19,48,.12)"
-      }
+        card: "0 1px 2px rgba(17,32,27,.04), 0 6px 20px -6px rgba(17,32,27,.08)",
+        lift: "0 16px 40px -12px rgba(6,55,42,.25)"
+      },
+      letterSpacing: { tightish: "-0.02em" }
     }
   },
   plugins: []

@@ -14,6 +14,11 @@ export const IconClock = (p) => (<svg {...base} {...p}><circle cx="12" cy="12" r
 export const IconLock = (p) => (<svg {...base} {...p}><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></svg>);
 export const IconArrow = (p) => (<svg {...base} {...p}><path d="M5 12h14M13 6l6 6-6 6" /></svg>);
 export const IconSpark = (p) => (<svg {...base} {...p}><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6" /></svg>);
+export const IconNews = (p) => (<svg {...base} {...p}><path d="M5 4h11a2 2 0 0 1 2 2v13a1 1 0 0 0 1 1H6a3 3 0 0 1-3-3V6a2 2 0 0 1 2-2z" /><path d="M18 9h2a1 1 0 0 1 1 1v8a2 2 0 0 1-2 2" /><path d="M7 8h7M7 12h7M7 16h4" /></svg>);
+export const IconFlag = (p) => (<svg {...base} {...p}><path d="M5 21V4M5 4h11l-2 4 2 4H5" /></svg>);
+export const IconSchool = (p) => (<svg {...base} {...p}><path d="m3 9 9-5 9 5-9 5z" /><path d="M7 11v5c0 1.5 2.5 3 5 3s5-1.5 5-3v-5" /></svg>);
+export const IconMenu = (p) => (<svg {...base} {...p}><path d="M4 7h16M4 12h16M4 17h16" /></svg>);
+export const IconExternal = (p) => (<svg {...base} {...p}><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" /></svg>);
 export const IconWhatsapp = (p) => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" {...p}>
     <path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2c-1.5 0-3-.4-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1-.7-.3-1.5-.8-2.2-1.5-.6-.6-1-1.2-1.2-1.4-.1-.2 0-.4.1-.5l.4-.5.3-.4v-.5l-.8-1.9c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.2s.9 2.5 1 2.7c.1.2 1.8 2.8 4.5 3.9 1.7.7 2.3.7 3.1.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3z" />

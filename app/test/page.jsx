@@ -3,7 +3,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useT } from "../../components/LangProvider";
 import SchoolCard from "../../components/SchoolCard";
-import { ORIENTATION_TEST, RIASEC_LABELS, DOMAINS, SCHOOLS } from "../../lib/data";
+import { ORIENTATION_TEST, RIASEC_LABELS, DOMAINS } from "../../lib/data";
+import { SCHOOLS } from "../../lib/schools";
 import { useStored } from "../../lib/store";
 
 export default function TestPage() {
@@ -29,14 +30,14 @@ export default function TestPage() {
         <span dir="ltr">{step + 1} / {ORIENTATION_TEST.length}</span>
       </div>
       <div className="mt-3 h-2 rounded-full bg-line overflow-hidden">
-        <div className="h-full bg-majorelle rounded-full transition-all duration-500" style={{ width: `${(step / ORIENTATION_TEST.length) * 100}%` }} />
+        <div className="h-full bg-brand-600 rounded-full transition-all duration-500" style={{ width: `${(step / ORIENTATION_TEST.length) * 100}%` }} />
       </div>
 
       <h1 className="mt-10 text-2xl md:text-3xl font-bold leading-snug">{t(q)}</h1>
       <div className="mt-8 grid gap-3">
         {q.options.map((o, i) => (
           <button key={i} onClick={() => pick(o.v)}
-            className="card text-start p-5 font-medium text-lg hover:border-majorelle hover:bg-majorelle-soft active:scale-[.99] transition-all">
+            className="card text-start p-5 font-medium text-lg hover:border-brand-600 hover:bg-brand-50 active:scale-[.99] transition-all">
             {t(o)}
           </button>
         ))}
@@ -63,7 +64,7 @@ function Result({ letters, onRestart, t }) {
     .filter((d) => d.match > 0)
     .sort((a, b) => b.match - a.match)
     .slice(0, 3);
-  const schools = SCHOOLS.filter((s) => domains.some((d) => d.slug === s.domain)).slice(0, 4);
+  const schools = SCHOOLS.filter((s) => (s.kind === "network" || !s.network) && s.type !== "prive" && domains.some((d) => d.slug === s.domain)).slice(0, 6);
 
   return (
     <div className="max-w-4xl mx-auto px-4 pt-10">
@@ -71,8 +72,8 @@ function Result({ letters, onRestart, t }) {
       <h1 className="mt-2 text-3xl md:text-4xl font-bold">{t({ ar: "ملفك الشخصي", fr: "Ton profil" })}</h1>
       <div className="mt-6 grid sm:grid-cols-2 gap-3">
         {letters.map((l, i) => (
-          <div key={l} className={`rounded-xl2 p-5 ${i === 0 ? "bg-majorelle text-white" : "card"}`}>
-            <p className={`text-4xl font-bold ${i === 0 ? "" : "text-majorelle"}`}>{l}</p>
+          <div key={l} className={`rounded-xl2 p-5 ${i === 0 ? "bg-brand-600 text-white" : "card"}`}>
+            <p className={`text-4xl font-bold ${i === 0 ? "" : "text-brand-600"}`}>{l}</p>
             <p className="mt-2 font-semibold">{t(RIASEC_LABELS[l])}</p>
           </div>
         ))}

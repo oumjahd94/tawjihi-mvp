@@ -47,7 +47,7 @@ export default function QuizRunner({ id, quiz, onExit }) {
     return (
       <div className="card p-8 text-center max-w-lg mx-auto">
         <p className="eyebrow">{t({ ar: "النتيجة", fr: "Résultat" })}</p>
-        <p className="mt-3 text-6xl font-bold text-majorelle" dir="ltr">{score}/{quiz.questions.length}</p>
+        <p className="mt-3 text-6xl font-bold text-brand-600" dir="ltr">{score}/{quiz.questions.length}</p>
         <p className="mt-3 text-ink-soft">
           {pct >= 80 ? t({ ar: "ممتاز! أنت جاهز تقريبًا.", fr: "Excellent, tu es presque prêt !" })
             : pct >= 50 ? t({ ar: "جيد، واصل التدريب.", fr: "Pas mal, continue à t'entraîner." })
@@ -73,16 +73,16 @@ export default function QuizRunner({ id, quiz, onExit }) {
       </div>
       <div className="mt-4 flex gap-1.5">
         {quiz.questions.map((_, k) => (
-          <span key={k} className={`h-1.5 flex-1 rounded-full ${k < i ? "bg-majorelle" : k === i ? "bg-majorelle/40" : "bg-line"}`} />
+          <span key={k} className={`h-1.5 flex-1 rounded-full ${k < i ? "bg-brand-600" : k === i ? "bg-brand-600/40" : "bg-line"}`} />
         ))}
       </div>
       <p className="mt-8 text-2xl font-bold leading-snug" dir="ltr" style={{ textAlign: "start" }}>{q.q}</p>
       <div className="mt-6 grid gap-3" dir="ltr">
         {q.options.map((o, k) => {
-          const state = picked === null ? "" : k === q.answer ? "!border-mint !bg-mint-soft" : k === picked ? "!border-coral !bg-coral-soft" : "opacity-50";
+          const state = picked === null ? "" : k === q.answer ? "!border-brand-600 !bg-brand-50" : k === picked ? "!border-coral !bg-coral-soft" : "opacity-50";
           return (
             <button key={k} onClick={() => choose(k)}
-              className={`card text-left p-4 text-lg font-medium flex items-center gap-3 hover:border-majorelle transition-all ${state}`}>
+              className={`card text-left p-4 text-lg font-medium flex items-center gap-3 hover:border-brand-600 transition-all ${state}`}>
               <span className="h-8 w-8 shrink-0 rounded-lg bg-paper grid place-items-center text-sm font-bold text-ink-soft">{"ABCD"[k]}</span>
               {o}
             </button>

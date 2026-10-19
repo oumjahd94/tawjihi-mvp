@@ -1,23 +1,22 @@
 import { notFound } from "next/navigation";
-import { SCHOOLS } from "../../../lib/data";
+import { SCHOOLS, schoolBySlug } from "../../../lib/schools";
 import SchoolView from "./SchoolView";
 
-// Une page statique par école, générée au build → indexée par Google
 export function generateStaticParams() {
   return SCHOOLS.map((s) => ({ slug: s.slug }));
 }
 
 export function generateMetadata({ params }) {
-  const s = SCHOOLS.find((x) => x.slug === params.slug);
+  const s = schoolBySlug(params.slug);
   if (!s) return {};
+  const seuil = s.seuil ? ` Seuil ${s.seuil.year}.` : "";
   return {
-    title: `${s.acronym} : seuils, concours, débouchés | ${s.ar}`,
-    description: `${s.fr} — seuils des 5 dernières années, formule de calcul, dates d'inscription, débouchés et salaires au Maroc.`
+    title: `${s.acronym} : seuils, concours, inscription`,
+    description: `${s.fr}${s.city ? ` (${s.city})` : ""} — accès, durée, diplôme, débouchés.${seuil} ${s.ar}`
   };
 }
 
 export default function Page({ params }) {
-  const s = SCHOOLS.find((x) => x.slug === params.slug);
-  if (!s) notFound();
-  return <SchoolView slug={s.slug} />;
+  if (!schoolBySlug(params.slug)) notFound();
+  return <SchoolView slug={params.slug} />;
 }

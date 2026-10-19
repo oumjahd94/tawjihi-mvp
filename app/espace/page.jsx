@@ -66,60 +66,85 @@ function Login({ onLogin }) {
     onLogin({ id: data.user.id, name: fullPhone, via: "whatsapp", phone: fullPhone });
   }
 
+  const benefits = [
+    { ar: "تابع المدارس التي تهمك في مكان واحد", fr: "Suis les écoles qui t'intéressent, au même endroit" },
+    { ar: "رزنامة شخصية بمواعيد مدارسك فقط", fr: "Un calendrier perso avec les dates de TES écoles" },
+    { ar: "تنبيه واتساب قبل كل أجل (اختياري)", fr: "Une alerte WhatsApp avant chaque date limite (si tu le souhaites)" },
+    { ar: "احتفظ بنقطك ونتائج المحاكي", fr: "Tes notes et résultats du simulateur sauvegardés" }
+  ];
+
   return (
-    <div className="max-w-md mx-auto px-4 pt-12">
-      <p className="eyebrow">{t({ ar: "الخطوة 3 · نظّم", fr: "Étape 3 · S'organiser" })}</p>
-      <h1 className="mt-1 text-3xl font-bold">{t({ ar: "فضاؤك الشخصي", fr: "Ton espace perso" })}</h1>
-      <p className="mt-2 text-ink-soft">
-        {t({ ar: "تابع مدارسك، رزنامتك الشخصية، وتنبيهات واتساب قبل كل أجل.", fr: "Tes écoles suivies, ton calendrier perso et des alertes WhatsApp avant chaque date limite." })}
-      </p>
+    <div className="max-w-5xl mx-auto px-4 py-10 md:py-16">
+      <div className="grid md:grid-cols-2 rounded-2xl overflow-hidden shadow-lift border border-line">
+        {/* Pourquoi créer un compte */}
+        <div className="hero-bg text-white p-8 md:p-10 flex flex-col">
+          <h1 className="text-3xl font-semibold leading-tight">{t({ ar: "مرحبًا بك في مسلكي", fr: "Bienvenue sur Maslaki" })}</h1>
+          <p className="mt-3 text-white/75 leading-relaxed">{t({ ar: "حساب مجاني يكفي لتنظيم توجيهك.", fr: "Un compte gratuit pour organiser ton orientation." })}</p>
+          <ul className="mt-8 grid gap-4">
+            {benefits.map((b) => (
+              <li key={b.fr} className="flex items-start gap-3">
+                <span className="mt-0.5 h-6 w-6 shrink-0 rounded-full bg-gold-400 text-brand-950 grid place-items-center text-sm font-bold">✓</span>
+                <span className="leading-snug">{t(b)}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-auto pt-10 text-sm text-white/60">{t({ ar: "لا نبيع معطياتك أبدًا.", fr: "Nous ne revendons jamais tes données." })}</p>
+        </div>
 
-      <div className="card p-6 mt-8">
-        {step === "choose" && (
-          <div className="grid gap-3">
-            <button onClick={google} className="btn-ghost w-full !py-3.5"><IconGoogle /> {t({ ar: "المتابعة مع Google", fr: "Continuer avec Google" })}</button>
-            <button onClick={() => setStep("phone")} className="btn w-full !py-3.5 bg-[#25D366] text-white hover:brightness-95">
-              <IconWhatsapp /> {t({ ar: "المتابعة عبر واتساب", fr: "Continuer avec WhatsApp" })}
-            </button>
+        {/* Connexion */}
+        <div className="bg-white p-8 md:p-10 flex flex-col justify-center">
+          <h2 className="text-2xl font-semibold">{t({ ar: "تسجيل الدخول أو إنشاء حساب", fr: "Se connecter ou créer un compte" })}</h2>
+          <p className="mt-1 text-sm text-ink-soft">{t({ ar: "في نقرتين، بدون كلمة مرور.", fr: "En 2 clics, sans mot de passe." })}</p>
+
+          <div className="mt-7">
+            {step === "choose" && (
+              <div className="grid gap-3">
+                <button onClick={google} className="btn-ghost w-full !py-3.5"><IconGoogle /> {t({ ar: "المتابعة مع Google", fr: "Continuer avec Google" })}</button>
+                <button onClick={() => setStep("phone")} className="btn w-full !py-3.5 bg-[#25D366] text-white hover:brightness-95">
+                  <IconWhatsapp /> {t({ ar: "المتابعة عبر واتساب", fr: "Continuer avec WhatsApp" })}
+                </button>
+              </div>
+            )}
+
+            {step === "phone" && (
+              <div>
+                <label className="text-sm font-semibold" htmlFor="phone">{t({ ar: "رقم هاتفك", fr: "Ton numéro" })}</label>
+                <div className="mt-1.5 flex gap-2" dir="ltr">
+                  <span className="input !w-auto font-semibold text-ink-soft">+212</span>
+                  <input id="phone" className="input" inputMode="tel" autoComplete="tel-national" placeholder="6 12 34 56 78" value={phone} onChange={(e) => setPhone(e.target.value)} />
+                </div>
+                <button onClick={sendCode} disabled={busy} className="btn w-full mt-4 bg-[#25D366] text-white">
+                  {t({ ar: "أرسل الرمز على واتساب", fr: "Recevoir le code sur WhatsApp" })}
+                </button>
+              </div>
+            )}
+
+            {step === "code" && (
+              <div>
+                <label className="text-sm font-semibold" htmlFor="code">{t({ ar: "الرمز المرسل إلى", fr: "Code envoyé au" })} <span dir="ltr">{fullPhone}</span></label>
+                <input id="code" className="input mt-1.5 text-center text-2xl tracking-[.5em] font-bold" dir="ltr" inputMode="numeric" autoComplete="one-time-code" maxLength={6}
+                  value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} placeholder="••••••" />
+                <button onClick={verify} disabled={busy} className="btn-primary w-full mt-4">{t({ ar: "تأكيد", fr: "Valider" })}</button>
+                {!supabase && <p className="mt-2 text-xs text-ink-faint text-center">{t({ ar: "وضع تجريبي: أي 6 أرقام", fr: "Mode démo : n'importe quels 6 chiffres" })}</p>}
+              </div>
+            )}
+
+            {error && <p className="mt-3 text-sm font-semibold text-coral">{error}</p>}
+            {step !== "choose" && (
+              <button onClick={() => { setStep("choose"); setError(""); }} className="mt-4 text-sm font-semibold text-ink-soft hover:text-ink">
+                {t({ ar: "رجوع", fr: "Retour" })}
+              </button>
+            )}
           </div>
-        )}
 
-        {step === "phone" && (
-          <div>
-            <label className="text-sm font-semibold">{t({ ar: "رقم هاتفك", fr: "Ton numéro" })}</label>
-            <div className="mt-1.5 flex gap-2" dir="ltr">
-              <span className="input !w-auto font-semibold text-ink-soft">+212</span>
-              <input className="input" inputMode="tel" placeholder="6 12 34 56 78" value={phone} onChange={(e) => setPhone(e.target.value)} />
-            </div>
-            <button onClick={sendCode} disabled={busy} className="btn w-full mt-4 bg-[#25D366] text-white">
-              {t({ ar: "أرسل الرمز على واتساب", fr: "Recevoir le code sur WhatsApp" })}
-            </button>
-          </div>
-        )}
-
-        {step === "code" && (
-          <div>
-            <label className="text-sm font-semibold">{t({ ar: "الرمز المرسل إلى", fr: "Code envoyé au" })} <span dir="ltr">{fullPhone}</span></label>
-            <input className="input mt-1.5 text-center text-2xl tracking-[.5em] font-bold" dir="ltr" inputMode="numeric" maxLength={6}
-              value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} placeholder="••••••" />
-            <button onClick={verify} disabled={busy} className="btn-primary w-full mt-4">{t({ ar: "تأكيد", fr: "Valider" })}</button>
-            {!supabase && <p className="mt-2 text-xs text-ink-faint text-center">{t({ ar: "وضع تجريبي: أي 6 أرقام", fr: "Mode démo : n'importe quels 6 chiffres" })}</p>}
-          </div>
-        )}
-
-        {error && <p className="mt-3 text-sm font-semibold text-coral">{error}</p>}
-        {step !== "choose" && (
-          <button onClick={() => { setStep("choose"); setError(""); }} className="mt-4 text-sm font-semibold text-ink-soft hover:text-ink">
-            {t({ ar: "رجوع", fr: "Retour" })}
-          </button>
-        )}
+          <p className="mt-8 text-xs text-ink-faint leading-relaxed">
+            {t({ ar: "بالمتابعة، أنت توافق على", fr: "En continuant, tu acceptes la" })}{" "}
+            <Link href="/confidentialite" className="underline hover:text-brand-700">{t({ ar: "سياسة الخصوصية", fr: "politique de confidentialité" })}</Link>.{" "}
+            {t({ ar: "التنبيهات تفعل لاحقًا باختيارك. أقل من 18 سنة: بموافقة أحد الوالدين.", fr: "Les alertes s'activent ensuite, seulement si tu le choisis. Moins de 18 ans : avec l'accord d'un parent." })}
+          </p>
+          <Link href="/" className="mt-4 text-sm font-semibold text-brand-700 hover:underline">{t({ ar: "المتابعة بدون حساب", fr: "Continuer sans compte" })}</Link>
+        </div>
       </div>
-      <p className="mt-4 text-xs text-ink-faint text-center leading-relaxed">
-        {t({
-          ar: "بالمتابعة، أنت توافق على تلقي تنبيهات التوجيه. معطياتك محمية وفق القانون 09-08.",
-          fr: "En continuant, tu acceptes de recevoir des alertes d'orientation. Tes données sont protégées conformément à la loi 09-08."
-        })}
-      </p>
     </div>
   );
 }

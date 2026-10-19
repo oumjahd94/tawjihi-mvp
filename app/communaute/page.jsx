@@ -26,7 +26,7 @@ function Community() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 pt-10">
-      <p className="eyebrow">{t({ ar: "الخطوة 5 · شارك", fr: "Étape 5 · S'entraider" })}</p>
+      <p className="eyebrow">{t({ ar: "المجتمع", fr: "Communauté" })}</p>
       <h1 className="mt-1 text-3xl font-bold">{t({ ar: "المجتمع", fr: "La communauté" })}</h1>
 
       <div className="mt-6 flex gap-2 overflow-x-auto pb-1 lg:hidden">

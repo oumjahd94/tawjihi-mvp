@@ -26,7 +26,7 @@ export default function Preparation() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 pt-10">
-      <p className="eyebrow">{t({ ar: "الخطوة 4 · حضّر", fr: "Étape 4 · Se préparer" })}</p>
+      <p className="eyebrow">{t({ ar: "التحضير", fr: "Prépa concours" })}</p>
       <h1 className="mt-1 text-3xl font-bold">{t({ ar: "التحضير للمباريات", fr: "Préparer les concours" })}</h1>
       <p className="mt-2 text-ink-soft max-w-2xl">
         {t({ ar: "كويزات بالتوقيت لتتدرب على هاتفك في أي مكان، وبنك امتحانات سابقة مصححة.", fr: "Des quiz chronométrés pour t'entraîner sur ton téléphone, partout, et une banque d'annales corrigées." })}

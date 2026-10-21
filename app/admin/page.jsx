@@ -80,7 +80,13 @@ function Login() {
     setBusy(true); setError("");
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
-    if (error) setError("Identifiants incorrects.");
+    if (error) {
+      const m = error.message || "";
+      if (/email not confirmed/i.test(m)) setError("Email non confirmé : confirme l'utilisateur dans Supabase (Authentication > Users).");
+      else if (/invalid login credentials/i.test(m)) setError("Email ou mot de passe incorrect.");
+      else if (/api key|apikey|jwt/i.test(m)) setError("Clé Supabase invalide : vérifie NEXT_PUBLIC_SUPABASE_ANON_KEY sur Vercel. (" + m + ")");
+      else setError("Erreur de connexion : " + m);
+    }
   }
   return (
     <form onSubmit={submit} className="card p-8 max-w-sm mx-auto mt-10 grid gap-4">

@@ -4,6 +4,8 @@ import { LangProvider } from "../components/LangProvider";
 import Nav from "../components/Nav";
 import Footer from "../components/Footer";
 import { SITE } from "../lib/site";
+import { ContentProvider } from "../components/ContentProvider";
+import { getSiteContent } from "../lib/content";
 
 export const metadata = {
   metadataBase: new URL(SITE.url),
@@ -16,7 +18,10 @@ export const viewport = { themeColor: "#06372A" };
 
 const ADSENSE = process.env.NEXT_PUBLIC_ADSENSE_CLIENT;
 
-export default function RootLayout({ children }) {
+export const revalidate = 300; // contenus admin (concours, seuils) rafraîchis toutes les 5 min
+
+export default async function RootLayout({ children }) {
+  const content = await getSiteContent();
   return (
     <html lang="ar" dir="rtl">
       <head>
@@ -31,9 +36,11 @@ export default function RootLayout({ children }) {
             src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE}`} />
         )}
         <LangProvider>
-          <Nav />
-          <main className="flex-1">{children}</main>
-          <Footer />
+          <ContentProvider value={content}>
+            <Nav />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </ContentProvider>
         </LangProvider>
       </body>
     </html>

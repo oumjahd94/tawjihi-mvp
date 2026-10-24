@@ -17,19 +17,24 @@ Mettre à jour après une modification poussée sur GitHub : `git pull` puis `np
 | Simulateur | `/simulateur` | Seuils de présélection 2026 réels, formule de chaque école |
 | Concours | `/concours` | `lib/concours.js` — statut calculé automatiquement (ouvert / en cours / à venir) |
 | Actualités | `/actualites` | Supabase (table `news`), sinon `lib/news-seed.js` |
-| Back-office | `/admin` | Publier, modifier, programmer, supprimer des articles + images |
+| Back-office | `/admin` | Actualités, concours, seuils, annales (PDF) et quiz, sans toucher au code |
 | Légal | `/confidentialite`, `/mentions-legales`, `/a-propos`, `/contact` | Textes à compléter dans `lib/site.js` |
 
 ## Mettre à jour les données
-- **Une école** : `lib/schools.js`. Un réseau (ex. ENSA) génère ses établissements via `members`.
-- **Un concours** : `lib/concours.js`. Mets `confirmed: true` + la source dès l'annonce officielle. Change `UPDATED_AT`.
-- **Une actualité** : depuis `/admin` (aucun code à toucher).
+Tout se fait depuis **`/admin`** :
+- **Actualités** : publier, programmer, mettre à la une.
+- **Concours** : ajouter une échéance, la marquer confirmée avec sa source, la dupliquer pour l'année suivante. « Mis à jour le… » suit tes modifications (ou le bouton « Tout est vérifié aujourd'hui »).
+- **Seuils** : corriger le seuil d'une école ou d'un réseau (source obligatoire). La fiche école et le simulateur suivent.
+- **Annales** : déposer les PDF (sujet, corrigé) et les relier à un quiz.
+- **Quiz** : créer et modifier les questions.
 
-## Activer le back-office des actualités
-1. Supabase > SQL Editor : `supabase/schema.sql`, `migration_v2.sql`, puis **`migration_v3_actualites.sql`**.
+Restent dans le code : la liste des écoles (`lib/schools.js`) et les textes fixes. Tant qu'une rubrique est vide dans la base, le site affiche les données du code ; le bouton « Importer » de chaque onglet les copie dans la base.
+
+## Activer le back-office
+1. Supabase > SQL Editor, dans l'ordre : `schema.sql`, `migration_v2.sql`, `migration_v3_actualites.sql`, **`migration_v4_contenus.sql`**.
 2. Authentication > Users > Add user (ton email + mot de passe).
 3. Exécute les 2 lignes en bas de `migration_v3_actualites.sql` avec ton email → tu deviens admin.
-4. Va sur `/admin`, connecte-toi, clique « Importer les 6 articles de départ ».
+4. Va sur `/admin`, connecte-toi, puis dans chaque onglet clique « Importer ». Pour les annales, importe d'abord les quiz.
 
 ## Google AdSense
 1. Mets le site en ligne sur ton domaine (ex. maslaki.ma) avec les pages légales complétées.

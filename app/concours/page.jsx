@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useLang, useT } from "../../components/LangProvider";
 import ConcoursRow from "../../components/ConcoursRow";
 import AdSlot, { AD_SLOTS } from "../../components/AdSlot";
-import { activeConcours, CATEGORIES, UPDATED_AT } from "../../lib/concours";
+import { CATEGORIES } from "../../lib/concours";
+import { useConcours } from "../../components/ContentProvider";
 import { formatDate } from "../../lib/format";
 
 const GROUPS = [
@@ -17,13 +18,14 @@ export default function ConcoursPage() {
   const t = useT();
   const { lang } = useLang();
   const [cat, setCat] = useState("all");
-  const items = activeConcours().filter((c) => cat === "all" || c.cat === cat);
+  const { active, updatedAt } = useConcours();
+  const items = active.filter((c) => cat === "all" || c.cat === cat);
 
   return (
     <div className="max-w-3xl mx-auto px-4 pt-10 pb-6">
       <p className="eyebrow">{t({ ar: "المباريات", fr: "Concours" })}</p>
       <h1 className="mt-1 text-3xl md:text-4xl font-semibold">{t({ ar: "المباريات والمواعيد", fr: "Concours & échéances" })}</h1>
-      <p className="mt-2 text-ink-soft">{t({ ar: "آخر تحديث:", fr: "Dernière mise à jour :" })} {formatDate(UPDATED_AT, lang)}</p>
+      <p className="mt-2 text-ink-soft">{t({ ar: "آخر تحديث:", fr: "Dernière mise à jour :" })} {formatDate(updatedAt, lang)}</p>
 
       <div className="mt-6 flex gap-2 overflow-x-auto pb-1">
         <button onClick={() => setCat("all")} className={`chip shrink-0 ${cat === "all" ? "chip-on" : ""}`}>{t({ ar: "الكل", fr: "Tout" })}</button>

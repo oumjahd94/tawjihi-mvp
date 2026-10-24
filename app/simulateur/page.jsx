@@ -5,7 +5,7 @@ import { useT } from "../../components/LangProvider";
 import KhatamGauge, { VerdictGauge } from "../../components/KhatamGauge";
 import FavButton from "../../components/FavButton";
 import { BAC_TYPES } from "../../lib/data";
-import { SIMULATOR_SCHOOLS } from "../../lib/schools";
+import { useSimulatorSchools, useSeuilYear } from "../../components/ContentProvider";
 import { bacAverage, verdict, TIER_META, formulaLabel, isFilled, fmtSeuil } from "../../lib/scoring";
 import { useGrades } from "../../lib/store";
 
@@ -20,16 +20,18 @@ export default function Simulateur() {
   const t = useT();
   const [grades, setGrades] = useGrades();
   const [filter, setFilter] = useState("all");
+  const simSchools = useSimulatorSchools();
+  const Y = useSeuilYear();
   const avg = bacAverage(grades);
   const ready = isFilled(grades);
 
   const { results, excluded } = useMemo(() => {
-    const all = SIMULATOR_SCHOOLS.map((s) => ({ school: s, v: verdict(s, grades.bac, grades) }));
+    const all = simSchools.map((s) => ({ school: s, v: verdict(s, grades.bac, grades) }));
     return {
       results: all.filter(({ v }) => ORDER[v.tier] != null).sort((a, b) => ORDER[a.v.tier] - ORDER[b.v.tier] || b.v.margin - a.v.margin),
       excluded: all.filter(({ v }) => v.tier === "na" || v.tier === "noseuil")
     };
-  }, [grades]);
+  }, [grades, simSchools]);
 
   const counts = { good: 0, ok: 0, close: 0, below: 0 };
   results.forEach(({ v }) => counts[v.tier]++);
@@ -44,7 +46,7 @@ export default function Simulateur() {
     <div className="max-w-6xl mx-auto px-4 pt-10 pb-6 grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-8 items-start">
       <section className="min-w-0 lg:sticky lg:top-24 card p-6">
         <p className="eyebrow">{t({ ar: "قيّم", fr: "Évaluer" })}</p>
-        <h1 className="mt-1 text-2xl font-semibold">{t({ ar: "محاكي العتبات 2026", fr: "Simulateur de seuils 2026" })}</h1>
+        <h1 className="mt-1 text-2xl font-semibold">{t({ ar: `محاكي العتبات ${Y}`, fr: `Simulateur de seuils ${Y}` })}</h1>
 
         <label className="block mt-6">
           <span className="text-sm font-semibold">{t({ ar: "نوع الباكالوريا", fr: "Type de bac" })}</span>
@@ -84,7 +86,7 @@ export default function Simulateur() {
             <div className="mx-auto w-fit"><KhatamGauge size={110} value={null} label="?" /></div>
             <h2 className="mt-6 text-xl font-semibold">{t({ ar: "أدخل نقطك الثلاث", fr: "Entre tes trois notes" })}</h2>
             <p className="mt-2 text-ink-soft max-w-md mx-auto">
-              {t({ ar: "سنقارن نقطتك مع عتبات الانتقاء لسنة 2026 في كل مدرسة نشرت عتبتها.", fr: "On compare ta note aux seuils de présélection 2026 de chaque école qui a publié le sien." })}
+              {t({ ar: `سنقارن نقطتك مع عتبات الانتقاء لسنة ${Y} في كل مدرسة نشرت عتبتها.`, fr: `On compare ta note aux seuils de présélection ${Y} de chaque école qui a publié le sien.` })}
             </p>
           </div>
         ) : (
@@ -128,8 +130,8 @@ export default function Simulateur() {
             <div className="mt-6 rounded-xl bg-gold-50 border border-gold-100 p-4 text-sm leading-relaxed text-ink">
               <b>{t({ ar: "مهم:", fr: "Important :" })}</b>{" "}
               {t({
-                ar: "هذه عتبات 2026 (مصدر: orientation-chabab.com والمذكرات الرسمية). العتبة حد أدنى لاجتياز المباراة، وقد تتغير في 2027. المدارس الأخرى (CPGE، EST، FST…) لم تنشر عتبة موحدة.",
-                fr: "Ce sont les seuils 2026 (source : orientation-chabab.com et notes officielles). Un seuil est un minimum pour passer le concours, et il peut changer en 2027. Les autres écoles (CPGE, EST, FST…) ne publient pas de seuil unique."
+                ar: `هذه عتبات ${Y} (المصدر مذكور في بطاقة كل مدرسة). العتبة حد أدنى لاجتياز المباراة، وقد تتغير في ${Y + 1}. المدارس الأخرى (CPGE، EST، FST…) لم تنشر عتبة موحدة.`,
+                fr: `Ce sont les seuils ${Y} (source indiquée sur la fiche de chaque école). Un seuil est un minimum pour passer le concours, et il peut changer en ${Y + 1}. Les autres écoles (CPGE, EST, FST…) ne publient pas de seuil unique.`
               })}
             </div>
           </>

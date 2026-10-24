@@ -6,7 +6,8 @@ import { VerdictGauge } from "../../components/KhatamGauge";
 import ConcoursRow from "../../components/ConcoursRow";
 import FavButton from "../../components/FavButton";
 import { IconGoogle, IconWhatsapp, IconBell } from "../../components/Icons";
-import { activeConcours, daysLeft } from "../../lib/concours";
+import { daysLeft } from "../../lib/concours";
+import { useConcours } from "../../components/ContentProvider";
 import { verdict, TIER_META, bacAverage } from "../../lib/scoring";
 import { schoolBySlug, formatDate } from "../../lib/format";
 import { useAlertPrefs, useFavorites, useGrades, useUser } from "../../lib/store";
@@ -159,7 +160,8 @@ function Dashboard({ user, onLogout }) {
   const schools = favs.map(schoolBySlug).filter(Boolean);
   // Échéances de mes écoles (un établissement suit les dates de son réseau) + échéances générales
   const keys = new Set(schools.map((s) => s.network || s.slug));
-  const myDeadlines = activeConcours().filter((c) => c.school === null || keys.has(c.school));
+  const { active } = useConcours();
+  const myDeadlines = active.filter((c) => c.school === null || keys.has(c.school));
   const dateOf = (c) => (c.status === "upcoming" ? c.start : c.end || c.start);
   const next = myDeadlines.find((c) => c.school && c.status !== "ongoing" && dateOf(c));
   const avg = bacAverage(grades);

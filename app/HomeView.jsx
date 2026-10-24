@@ -9,14 +9,14 @@ import AdSlot, { AD_SLOTS } from "../components/AdSlot";
 import { IconArrow, IconSpark, IconWhatsapp } from "../components/Icons";
 import { DOMAINS } from "../lib/data";
 import { SCHOOLS, ESTABLISHMENT_COUNT, schoolBySlug } from "../lib/schools";
-import { activeConcours, UPDATED_AT } from "../lib/concours";
+import { useConcours, useSeuilYear } from "../components/ContentProvider";
 import { formatDate } from "../lib/format";
 
 const POPULAR = ["ENSA", "Médecine", "ENCG", "UM6P", "CPGE", "ISCAE", "EST"];
 
 const JOURNEY = [
   { href: "/test", ar: "اكتشف", fr: "Découvrir", d_ar: "اختبار توجيه في 10 أسئلة", d_fr: "Test d'orientation en 10 questions" },
-  { href: "/simulateur", ar: "قيّم", fr: "Évaluer", d_ar: "قارن نقطتك بعتبات 2026", d_fr: "Compare ta note aux seuils 2026" },
+  { href: "/simulateur", ar: "قيّم", fr: "Évaluer", d_ar: "قارن نقطتك بعتبات الانتقاء", d_fr: "Compare ta note aux seuils des écoles" },
   { href: "/espace", ar: "نظّم", fr: "S'organiser", d_ar: "مدارسك المفضلة وتنبيهاتك", d_fr: "Tes écoles suivies et tes alertes" },
   { href: "/preparation", ar: "حضّر", fr: "Se préparer", d_ar: "امتحانات سابقة وكويزات", d_fr: "Annales et quiz chronométrés" },
   { href: "/communaute", ar: "شارك", fr: "S'entraider", d_ar: "صالونات ولوائح الانتظار", d_fr: "Salons et listes d'attente" }
@@ -25,7 +25,9 @@ const JOURNEY = [
 export default function HomeView({ news }) {
   const t = useT();
   const { lang } = useLang();
-  const live = activeConcours().slice(0, 4);
+  const { active, updatedAt } = useConcours();
+  const Y = useSeuilYear();
+  const live = active.slice(0, 4);
   const [featured, ...rest] = news;
   const counts = Object.fromEntries(DOMAINS.map((d) => [d.slug, SCHOOLS.filter((s) => s.kind === "establishment" && s.domain === d.slug).length]));
   const picks = ["medecine", "ensa", "encg", "um6p", "eniad-berkane", "iscae"].map(schoolBySlug);
@@ -38,7 +40,7 @@ export default function HomeView({ news }) {
           <div>
             <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm font-medium ring-1 ring-white/15">
               <span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-gold-400 opacity-60" /><span className="relative inline-flex h-2 w-2 rounded-full bg-gold-400" /></span>
-              {t({ ar: "محدّث في", fr: "Mis à jour le" })} {formatDate(UPDATED_AT, lang, { day: "numeric", month: "long" })}
+              {t({ ar: "محدّث في", fr: "Mis à jour le" })} {formatDate(updatedAt, lang, { day: "numeric", month: "long" })}
             </p>
             <h1 className="mt-6 text-[2.5rem] leading-[1.1] md:text-6xl md:leading-[1.05] font-semibold">
               {t({ ar: "مسلكك بعد الباك", fr: "Ton chemin après le bac" })}{" "}
@@ -46,8 +48,8 @@ export default function HomeView({ news }) {
             </h1>
             <p className="mt-5 text-lg text-white/75 max-w-xl leading-relaxed">
               {t({
-                ar: `${ESTABLISHMENT_COUNT} مؤسسة، عتبات 2026، المباريات المفتوحة الآن والمستجدات اليومية. مجانًا.`,
-                fr: `${ESTABLISHMENT_COUNT} établissements, les seuils 2026, les concours ouverts en ce moment et l'actualité du jour. Gratuit.`
+                ar: `${ESTABLISHMENT_COUNT} مؤسسة، عتبات ${Y}، المباريات المفتوحة الآن والمستجدات اليومية. مجانًا.`,
+                fr: `${ESTABLISHMENT_COUNT} établissements, les seuils ${Y}, les concours ouverts en ce moment et l'actualité du jour. Gratuit.`
               })}
             </p>
             <div className="mt-8 max-w-xl"><SmartSearch large /></div>
@@ -129,7 +131,7 @@ export default function HomeView({ news }) {
           <div className="rounded-xl2 bg-gradient-to-br from-gold-50 to-white border border-gold-100 p-6">
             <IconSpark width={26} height={26} className="text-gold-500" />
             <p className="mt-3 text-xl font-semibold leading-snug">{t({ ar: "هل نقطك كافية؟", fr: "Tes notes suffisent-elles ?" })}</p>
-            <p className="mt-2 text-sm text-ink-soft leading-relaxed">{t({ ar: "أدخل نقطك وقارنها مع عتبات 2026 لكل مدرسة.", fr: "Entre tes notes et compare-les aux seuils 2026 de chaque école." })}</p>
+            <p className="mt-2 text-sm text-ink-soft leading-relaxed">{t({ ar: `أدخل نقطك وقارنها مع عتبات ${Y} لكل مدرسة.`, fr: `Entre tes notes et compare-les aux seuils ${Y} de chaque école.` })}</p>
             <Link href="/simulateur" className="btn-primary w-full mt-5">{t({ ar: "جرّب المحاكي", fr: "Lancer le simulateur" })}</Link>
             <Link href="/test" className="btn-ghost w-full mt-2">{t({ ar: "اختبار التوجيه", fr: "Faire le test d'orientation" })}</Link>
           </div>

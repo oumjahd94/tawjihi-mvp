@@ -1,6 +1,7 @@
-// Rafraîchit immédiatement les pages actualités après une publication depuis /admin.
+// Rafraîchit immédiatement le site après une modification depuis /admin
+// (actualités, concours, seuils, annales, quiz).
 // Sécurisé : seul un utilisateur dont le profil a le rôle "admin" peut l'appeler.
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
 
 export async function POST(request) {
@@ -14,8 +15,8 @@ export async function POST(request) {
   if (error || !isAdmin) return Response.json({ ok: false }, { status: 403 });
 
   const { slug } = await request.json().catch(() => ({}));
-  revalidatePath("/");
-  revalidatePath("/actualites");
+  revalidateTag("content");
+  revalidatePath("/", "layout");
   if (slug) revalidatePath(`/actualites/${slug}`);
   return Response.json({ ok: true });
 }
